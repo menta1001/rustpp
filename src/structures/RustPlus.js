@@ -95,6 +95,7 @@ class RustPlus extends RustPlusLib {
             all: [],
             cargo: [],
             heli: [],
+            bradley: [],
             small: [],
             large: [],
             chinook: []
@@ -219,10 +220,11 @@ class RustPlus extends RustPlusLib {
     updateEvents(event, message) {
         const commandCargoEn = `${Client.client.intlGet('en', 'commandSyntaxCargo')}`;
         const commandHeliEn = `${Client.client.intlGet('en', 'commandSyntaxHeli')}`;
+        const commandBradleyEn = `${Client.client.intlGet('en', 'commandSyntaxBradley')}`;
         const commandSmallEn = `${Client.client.intlGet('en', 'commandSyntaxSmall')}`;
         const commandLargeEn = `${Client.client.intlGet('en', 'commandSyntaxLarge')}`;
         const commandChinookEn = `${Client.client.intlGet('en', 'commandSyntaxChinook')}`;
-        if (![commandCargoEn, commandHeliEn, commandSmallEn, commandLargeEn, commandChinookEn].includes(event)) return;
+        if (![commandCargoEn, commandHeliEn, commandBradleyEn, commandSmallEn, commandLargeEn, commandChinookEn].includes(event)) return;
 
         const str = `${Timer.getCurrentDateTime()} - ${message}`;
 
@@ -1278,6 +1280,8 @@ class RustPlus extends RustPlusLib {
         const commandCargoEn = `${Client.client.intlGet('en', 'commandSyntaxCargo')}`;
         const commandHeli = `${Client.client.intlGet(this.guildId, 'commandSyntaxHeli')}`;
         const commandHeliEn = `${Client.client.intlGet('en', 'commandSyntaxHeli')}`;
+        const commandBradley = `${Client.client.intlGet(this.guildId, 'commandSyntaxBradley')}`;
+        const commandBradleyEn = `${Client.client.intlGet('en', 'commandSyntaxBradley')}`;
         const commandSmall = `${Client.client.intlGet(this.guildId, 'commandSyntaxSmall')}`;
         const commandSmallEn = `${Client.client.intlGet('en', 'commandSyntaxSmall')}`;
         const commandLarge = `${Client.client.intlGet(this.guildId, 'commandSyntaxLarge')}`;
@@ -1285,8 +1289,9 @@ class RustPlus extends RustPlusLib {
         const commandChinook = `${Client.client.intlGet(this.guildId, 'commandSyntaxChinook')}`;
         const commandChinookEn = `${Client.client.intlGet('en', 'commandSyntaxChinook')}`;
 
-        const EVENTS = [commandCargo, commandCargoEn, commandHeli, commandHeliEn, commandSmall,
-            commandSmallEn, commandLarge, commandLargeEn, commandChinook, commandChinookEn];
+        const EVENTS = [commandCargo, commandCargoEn, commandHeli, commandHeliEn, commandBradley,
+            commandBradleyEn, commandSmall, commandSmallEn, commandLarge, commandLargeEn, commandChinook,
+            commandChinookEn];
 
         if (command.toLowerCase().startsWith(`${commandEvents}`)) {
             command = command.slice(`${commandEvents}`.length).trim();
@@ -1336,6 +1341,11 @@ class RustPlus extends RustPlusLib {
                 event = 'heli';
             } break;
 
+            case commandBradleyEn:
+            case commandBradley: {
+                event = 'bradley';
+            } break;
+
             case commandSmallEn:
             case commandSmall: {
                 event = 'small';
@@ -1369,6 +1379,23 @@ class RustPlus extends RustPlusLib {
         }
 
         return strings;
+    }
+
+    getCommandBradley(isInfoChannel = false) {
+        const wasDestroyed = this.mapMarkers.timeSinceBradleyApcWasDestroyed;
+
+        if (wasDestroyed === null) {
+            return isInfoChannel ? Client.client.intlGet(this.guildId, 'notActive') :
+                Client.client.intlGet(this.guildId, 'bradleyApcNotYetDestroyed');
+        }
+
+        const secondsSince = (new Date() - wasDestroyed) / 1000;
+        const timeSince = isInfoChannel ? Timer.secondsToFullScale(secondsSince, 's') :
+            Timer.secondsToFullScale(secondsSince);
+        return Client.client.intlGet(this.guildId, 'timeSinceBradleyApcWasDestroyed', {
+            time: timeSince,
+            location: this.mapMarkers.bradleyApcDestroyedLocation ?? ''
+        });
     }
 
     getCommandHeli(isInfoChannel = false) {
