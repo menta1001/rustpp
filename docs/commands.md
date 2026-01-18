@@ -355,6 +355,7 @@ In-Game Command | Description
 [**decay**](commands.md#decay-ingame) | Display the decay time of an item.
 [**events**](commands.md#events) | Get recent events.
 [**heli**](commands.md#heli) | Get information about Patrol Helicopter (Location, time since last downed, time since last on map).
+[**bradley**](commands.md#bradley) | Get information about Bradley APC (Time since last destroyed).
 [**large**](commands.md#large) | Get information about Large Oil Rig (Time till crate unlocks, time since last trigger).
 [**leader**](commands.md#leader-1) | Give/Take the Team Leadership.
 [**marker**](commands.md#marker) | Set custom markers anywhere on the map.
@@ -459,7 +460,7 @@ In-Game Command | Description
 
 ## **events**
 
-> **Get recent In-Game events.** Available events are cargo, heli, small, large, chinook
+> **Get recent In-Game events.** Available events are cargo, heli, bradley, small, large, chinook
 <br>Command: `!events` - Get last 5 events
 <br>Command: `!events 3` - Get last 3 events
 <br>Command: `!events cargo` - Get last 5 events from cargo
@@ -474,6 +475,12 @@ In-Game Command | Description
 <br>Command: `!heli`
 
 ![In-Game Command heli Image](images/ingame_commands/heli_ingame.png)
+
+
+## **bradley**
+
+> **Get information about Bradley APC (Time since last destroyed).**
+<br>Command: `!bradley`
 
 
 ## **large**
