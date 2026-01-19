@@ -35,6 +35,7 @@
 - **decay** - Display the decay time of an item.
 - **events** - Get recent events.
 - **heli** - Get information regarding Patrol Helicopter.
+- **bradley** - Get information regarding Bradley APC.
 - **large** - Get information regarding Large Oil Rig.
 - **leader** - Transfer leadership.
 - **marker/markers** - Set markers to navigate to.

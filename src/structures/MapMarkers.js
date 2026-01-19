@@ -41,6 +41,7 @@ class MapMarkers {
             TravelingVendor: 9
         }
 
+        this._explosions = [];
         this._players = [];
         this._vendingMachines = [];
         this._ch47s = [];
@@ -64,9 +65,11 @@ class MapMarkers {
         this.timeSincePatrolHelicopterWasOnMap = null;
         this.timeSincePatrolHelicopterWasDestroyed = null;
         this.timeSinceTravelingVendorWasOnMap = null;
+        this.timeSinceBradleyApcWasDestroyed = null;
 
         /* Event location */
         this.patrolHelicopterDestroyedLocation = null;
+        this.bradleyApcDestroyedLocation = null;
 
         /* Vending Machine variables */
         this.knownVendingMachines = [];
@@ -83,6 +86,8 @@ class MapMarkers {
     set client(client) { this._client = client; }
     get types() { return this._types; }
     set types(types) { this._types = types; }
+    get explosions() { return this._explosions; }
+    set explosions(explosions) { this._explosions = explosions; }
     get players() { return this._players; }
     set players(players) { this._players = players; }
     get vendingMachines() { return this._vendingMachines; }
@@ -106,6 +111,10 @@ class MapMarkers {
         switch (type) {
             case this.types.Player: {
                 return this.players;
+            } break;
+
+            case this.types.Explosion: {
+                return this.explosions;
             } break;
 
             case this.types.VendingMachine: {
@@ -257,6 +266,7 @@ class MapMarkers {
     /* Update event map markers */
 
     updateMapMarkers(mapMarkers) {
+        this.updateExplosions(mapMarkers);
         this.updatePlayers(mapMarkers);
         this.updateCargoShips(mapMarkers);
         this.updatePatrolHelicopters(mapMarkers);
@@ -295,6 +305,38 @@ class MapMarkers {
             player.x = marker.x;
             player.y = marker.y;
             player.location = pos;
+        }
+    }
+
+    updateExplosions(mapMarkers) {
+        let newMarkers = this.getNewMarkersOfTypeId(this.types.Explosion, mapMarkers.markers);
+        let leftMarkers = this.getLeftMarkersOfTypeId(this.types.Explosion, mapMarkers.markers);
+        let remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.Explosion, mapMarkers.markers);
+
+        /* Explosion markers that are new. */
+        for (let marker of newMarkers) {
+            let mapSize = this.rustplus.info.correctedMapSize;
+            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+
+            marker.location = pos;
+
+            this.explosions.push(marker);
+        }
+
+        /* Explosion markers that have left. */
+        for (let marker of leftMarkers) {
+            this.explosions = this.explosions.filter(e => e.id !== marker.id);
+        }
+
+        /* Explosion markers that still remains. */
+        for (let marker of remainingMarkers) {
+            let mapSize = this.rustplus.info.correctedMapSize;
+            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            let explosion = this.getMarkerByTypeId(this.types.Explosion, marker.id);
+
+            explosion.x = marker.x;
+            explosion.y = marker.y;
+            explosion.location = pos;
         }
     }
 
@@ -607,6 +649,30 @@ class MapMarkers {
 
         /* GenericRadius markers that are new. */
         for (let marker of newMarkers) {
+            let mapSize = this.rustplus.info.correctedMapSize;
+            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            const markerName = `${marker.name ?? marker.text ?? ''}`.toLowerCase();
+            const launchSites = this.rustplus.map.monuments.filter(monument => monument.token === 'launchsite');
+            const launchSiteRadius = this.rustplus.map.monumentInfo?.launchsite?.radius ?? 250;
+
+            marker.location = pos;
+
+            if (markerName.includes('debris') && launchSites.some(site =>
+                Map.getDistance(marker.x, marker.y, site.x, site.y) <= launchSiteRadius)) {
+                this.rustplus.sendEvent(
+                    this.rustplus.notificationSettings.bradleyApcDestroyedSetting,
+                    this.client.intlGet(this.rustplus.guildId, 'bradleyApcDestroyedAtLaunchSite', {
+                        location: pos.string
+                    }),
+                    'bradley',
+                    Constants.COLOR_BRADLEY_APC_DESTROYED,
+                    this.rustplus.isFirstPoll,
+                    'bradley_apc_destroyed_logo.png');
+
+                this.timeSinceBradleyApcWasDestroyed = new Date();
+                this.bradleyApcDestroyedLocation = pos.string;
+            }
+
             this.genericRadiuses.push(marker);
         }
 
@@ -617,10 +683,13 @@ class MapMarkers {
 
         /* GenericRadius markers that still remains. */
         for (let marker of remainingMarkers) {
+            let mapSize = this.rustplus.info.correctedMapSize;
+            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
             let genericRadius = this.getMarkerByTypeId(this.types.GenericRadius, marker.id);
 
             genericRadius.x = marker.x;
             genericRadius.y = marker.y;
+            genericRadius.location = pos;
         }
     }
 
@@ -858,6 +927,7 @@ class MapMarkers {
     }
 
     reset() {
+        this.explosions = [];
         this.players = [];
         this.vendingMachines = [];
         this.ch47s = [];
@@ -886,8 +956,10 @@ class MapMarkers {
         this.timeSincePatrolHelicopterWasOnMap = null;
         this.timeSincePatrolHelicopterWasDestroyed = null;
         this.timeSinceTravelingVendorWasOnMap = null;
+        this.timeSinceBradleyApcWasDestroyed = null;
 
         this.patrolHelicopterDestroyedLocation = null;
+        this.bradleyApcDestroyedLocation = null;
 
         this.knownVendingMachines = [];
         this.subscribedItemsId = [];
