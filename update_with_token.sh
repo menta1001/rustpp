@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 #   Copyright (C) 2024
@@ -19,10 +19,7 @@
 #   https://github.com/menta1001/rustpp
 #
 
-set -eu
-if (set -o pipefail) 2>/dev/null; then
-    set -o pipefail
-fi
+set -euo pipefail
 
 REPO_URL="https://github.com/menta1001/rustpp.git"
 TOKEN="${GITHUB_TOKEN:-${1:-}}"
