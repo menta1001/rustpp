@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 #
 #   Copyright (C) 2024
@@ -18,10 +18,6 @@
 #
 #   https://github.com/menta1001/rustpp
 #
-
-if [ -z "${BASH_VERSION:-}" ]; then
-    exec bash "$0" "$@"
-fi
 
 set -euo pipefail
 
