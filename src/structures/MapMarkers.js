@@ -668,6 +668,30 @@ class MapMarkers {
 
         /* GenericRadius markers that are new. */
         for (let marker of newMarkers) {
+            let mapSize = this.rustplus.info.correctedMapSize;
+            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
+            const markerName = `${marker.name ?? marker.text ?? ''}`.toLowerCase();
+            const launchSites = this.rustplus.map.monuments.filter(monument => monument.token === 'launchsite');
+            const launchSiteRadius = this.rustplus.map.monumentInfo?.launchsite?.radius ?? 250;
+
+            marker.location = pos;
+
+            if (markerName.includes('debris') && launchSites.some(site =>
+                Map.getDistance(marker.x, marker.y, site.x, site.y) <= launchSiteRadius)) {
+                this.rustplus.sendEvent(
+                    this.rustplus.notificationSettings.bradleyApcDestroyedSetting,
+                    this.client.intlGet(this.rustplus.guildId, 'bradleyApcDestroyedAtLaunchSite', {
+                        location: pos.string
+                    }),
+                    'bradley',
+                    Constants.COLOR_BRADLEY_APC_DESTROYED,
+                    this.rustplus.isFirstPoll,
+                    'bradley_apc_destroyed_logo.png');
+
+                this.timeSinceBradleyApcWasDestroyed = new Date();
+                this.bradleyApcDestroyedLocation = pos.string;
+            }
+
             this.genericRadiuses.push(marker);
         }
 
@@ -678,10 +702,13 @@ class MapMarkers {
 
         /* GenericRadius markers that still remains. */
         for (let marker of remainingMarkers) {
+            let mapSize = this.rustplus.info.correctedMapSize;
+            let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
             let genericRadius = this.getMarkerByTypeId(this.types.GenericRadius, marker.id);
 
             genericRadius.x = marker.x;
             genericRadius.y = marker.y;
+            genericRadius.location = pos;
         }
     }
 
