@@ -313,12 +313,31 @@ class MapMarkers {
         let leftMarkers = this.getLeftMarkersOfTypeId(this.types.Explosion, mapMarkers.markers);
         let remainingMarkers = this.getRemainingMarkersOfTypeId(this.types.Explosion, mapMarkers.markers);
 
+        const launchSites = this.rustplus.map.monuments.filter(monument => monument.token === 'launchsite');
+        const launchSiteRadius = this.rustplus.map.monumentInfo?.launchsite?.radius ?? 250;
+
         /* Explosion markers that are new. */
         for (let marker of newMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
             let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
 
             marker.location = pos;
+
+            if (launchSites.some(site =>
+                Map.getDistance(marker.x, marker.y, site.x, site.y) <= launchSiteRadius)) {
+                this.rustplus.sendEvent(
+                    this.rustplus.notificationSettings.bradleyApcDestroyedSetting,
+                    this.client.intlGet(this.rustplus.guildId, 'bradleyApcDestroyedAtLaunchSite', {
+                        location: pos.string
+                    }),
+                    'bradley',
+                    Constants.COLOR_BRADLEY_APC_DESTROYED,
+                    this.rustplus.isFirstPoll,
+                    'bradley_apc_destroyed_logo.png');
+
+                this.timeSinceBradleyApcWasDestroyed = new Date();
+                this.bradleyApcDestroyedLocation = pos.string;
+            }
 
             this.explosions.push(marker);
         }
@@ -651,16 +670,13 @@ class MapMarkers {
         for (let marker of newMarkers) {
             let mapSize = this.rustplus.info.correctedMapSize;
             let pos = Map.getPos(marker.x, marker.y, mapSize, this.rustplus);
-            const markerText = Object.values(marker)
-                .filter(value => typeof value === 'string')
-                .join(' ')
-                .toLowerCase();
+            const markerName = `${marker.name ?? marker.text ?? ''}`.toLowerCase();
             const launchSites = this.rustplus.map.monuments.filter(monument => monument.token === 'launchsite');
             const launchSiteRadius = this.rustplus.map.monumentInfo?.launchsite?.radius ?? 250;
 
             marker.location = pos;
 
-            if ((markerText.includes('debris') || markerText.includes('debries')) && launchSites.some(site =>
+            if (markerName.includes('debris') && launchSites.some(site =>
                 Map.getDistance(marker.x, marker.y, site.x, site.y) <= launchSiteRadius)) {
                 this.rustplus.sendEvent(
                     this.rustplus.notificationSettings.bradleyApcDestroyedSetting,

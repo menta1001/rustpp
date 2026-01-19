@@ -30,7 +30,6 @@ module.exports = {
 
         rustplus.log(client.intlGet(null, 'connectedCap'), client.intlGet(null, 'connectedToServer'));
 
-        const instance = client.getInstance(rustplus.guildId);
         const guildId = rustplus.guildId;
         const serverId = rustplus.serverId;
 
@@ -45,13 +44,8 @@ module.exports = {
             rustplus.log(client.intlGet(null, 'errorCap'),
                 client.intlGet(null, 'somethingWrongWithConnection'), 'error');
 
-            instance.activeServer = null;
-            client.setInstance(guildId, instance);
-
             await DiscordMessages.sendServerConnectionInvalidMessage(guildId, serverId);
             await DiscordMessages.sendServerMessage(guildId, serverId, null);
-
-            client.resetRustplusVariables(guildId);
 
             rustplus.disconnect();
             delete client.rustplusInstances[guildId];
